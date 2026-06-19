@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>詳細適職診断</title>
+    <link rel="stylesheet" href="career.css">
+</head>
+<body>
+    <main class="app-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Career Fit</p>
+                <h1>詳細適職診断</h1>
+            </div>
+            <a class="index-link" href="/">一覧</a>
+        </header>
+
+        <section class="profile-panel">
+            <label>
+                名前
+                <input id="userName" type="text" value="あなた" maxlength="24">
+            </label>
+            <label>
+                重視する働き方
+                <select id="workPreference">
+                    <option value="成長できる環境">成長できる環境</option>
+                    <option value="安定した環境">安定した環境</option>
+                    <option value="自由度の高い環境">自由度の高い環境</option>
+                    <option value="人の役に立つ実感">人の役に立つ実感</option>
+                    <option value="専門性を磨ける環境">専門性を磨ける環境</option>
+                </select>
+            </label>
+            <label>
+                興味領域
+                <select id="interestAreas">
+                    <option value="企画・マーケティング・デザイン">企画・マーケティング・デザイン</option>
+                    <option value="営業・接客・カスタマーサクセス">営業・接客・カスタマーサクセス</option>
+                    <option value="事務・管理・コーポレート">事務・管理・コーポレート</option>
+                    <option value="IT・データ・プロダクト">IT・データ・プロダクト</option>
+                    <option value="教育・福祉・人材支援">教育・福祉・人材支援</option>
+                </select>
+            </label>
+            <label>
+                勤務形態
+                <select id="workStyle">
+                    <option value="在宅メイン">在宅メイン</option>
+                    <option value="在宅と出社の併用">在宅と出社の併用</option>
+                    <option value="出社メイン">出社メイン</option>
+                    <option value="こだわらない">こだわらない</option>
+                </select>
+            </label>
+            <label>
+                希望勤務地
+                <select id="workLocation">
+                    <option value="地域を限定しない">地域を限定しない</option>
+                    <option value="自宅から通える範囲">自宅から通える範囲</option>
+                    <option value="都市部で働きたい">都市部で働きたい</option>
+                    <option value="地方・地元で働きたい">地方・地元で働きたい</option>
+                    <option value="フルリモートなら全国可">フルリモートなら全国可</option>
+                </select>
+            </label>
+            <label>
+                雇用形態
+                <select id="employmentType">
+                    <option value="正社員">正社員</option>
+                    <option value="契約社員・派遣も検討">契約社員・派遣も検討</option>
+                    <option value="アルバイト・パートも検討">アルバイト・パートも検討</option>
+                    <option value="副業・業務委託も検討">副業・業務委託も検討</option>
+                    <option value="こだわらない">こだわらない</option>
+                </select>
+            </label>
+            <label>
+                避けたい条件
+                <select id="avoidCondition">
+                    <option value="長時間残業が多い環境">長時間残業が多い環境</option>
+                    <option value="転勤が多い環境">転勤が多い環境</option>
+                    <option value="ノルマが強い環境">ノルマが強い環境</option>
+                    <option value="人前で話す機会が多い環境">人前で話す機会が多い環境</option>
+                    <option value="単独作業が多すぎる環境">単独作業が多すぎる環境</option>
+                    <option value="特になし">特になし</option>
+                </select>
+            </label>
+        </section>
+
+        <section id="historyPanel" class="history-panel" hidden>
+            <div class="history-head">
+                <div>
+                    <p class="eyebrow">Saved Results</p>
+                    <h2>保存した診断結果</h2>
+                </div>
+                <button id="clearHistoryBtn" class="ghost-btn" type="button">履歴を削除</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+        </section>
+
+        <section class="meter" aria-label="回答進捗">
+            <div class="meter-row">
+                <span id="progressText">0 / 24</span>
+                <span id="leadingTrait">診断前</span>
+            </div>
+            <div class="meter-track">
+                <div id="progressBar" class="meter-fill"></div>
+            </div>
+        </section>
+
+        <section id="questionnaire" class="questionnaire"></section>
+
+        <section class="actions">
+            <button id="resetBtn" class="ghost-btn" type="button">リセット</button>
+            <button id="submitBtn" class="primary-btn" type="button" disabled>診断する</button>
+        </section>
+
+        <section id="loading" class="loading" hidden>
+            <span class="spinner"></span>
+            <span>詳細レポートを作成中...</span>
+        </section>
+
+        <section id="result" class="result" hidden>
+            <div class="result-header">
+                <div>
+                    <p class="eyebrow">Result</p>
+                    <h2 id="headline">診断結果</h2>
+                </div>
+                <div class="result-actions">
+                    <button id="pdfBtn" class="ghost-btn" type="button">PDF保存</button>
+                    <button id="shareBtn" class="ghost-btn" type="button">シェア</button>
+                    <button id="retryBtn" class="ghost-btn" type="button">もう一度</button>
+                </div>
+            </div>
+
+            <p id="summary" class="summary"></p>
+            <p id="shareStatus" class="share-status" aria-live="polite"></p>
+
+            <div class="score-grid" id="scoreGrid"></div>
+
+            <div class="role-list" id="bestRoles"></div>
+
+            <div class="detail-grid">
+                <article>
+                    <h3>近い職種</h3>
+                    <ul id="nearRoles"></ul>
+                </article>
+                <article>
+                    <h3>避けたい環境</h3>
+                    <ul id="avoidEnvironments"></ul>
+                </article>
+                <article>
+                    <h3>最初に磨くスキル</h3>
+                    <ul id="skillPlan"></ul>
+                </article>
+                <article>
+                    <h3>面接で使える言葉</h3>
+                    <ul id="interviewKeywords"></ul>
+                </article>
+            </div>
+
+            <p id="caveat" class="caveat"></p>
+        </section>
+    </main>
+
+    <script>
+        const traits = {
+            creative: '創造',
+            analytical: '分析',
+            people: '対人',
+            structure: '秩序',
+            action: '推進',
+            support: '支援'
+        };
+
+        const questions = [
+            { text: 'まだ形のないアイデアを具体化する作業が好き', trait: 'creative' },
+            { text: '数字やデータを見て傾向を読み取るのが好き', trait: 'analytical' },
+            { text: '初対面の相手とも話しながら関係を作れる', trait: 'people' },
+            { text: '手順やルールを整えてミスを減らすのが得意', trait: 'structure' },
+            { text: '迷っているより、まず動いて検証したい', trait: 'action' },
+            { text: '困っている人を支える役割にやりがいを感じる', trait: 'support' },
+            { text: '資料や画面の見た目を整えることにこだわる', trait: 'creative' },
+            { text: '複雑な情報を分類して整理するのが得意', trait: 'analytical' },
+            { text: '相手の課題を聞き出して提案するのが好き', trait: 'people' },
+            { text: '正確な処理やチェック作業を続けられる', trait: 'structure' },
+            { text: '目標から逆算して周囲を巻き込める', trait: 'action' },
+            { text: '相手が安心して相談できる空気を作れる', trait: 'support' },
+            { text: '広告、SNS、Webサイトの表現を観察してしまう', trait: 'creative' },
+            { text: '原因を深掘りして改善策を考えるのが好き', trait: 'analytical' },
+            { text: '顧客やユーザーの反応を直接知りたい', trait: 'people' },
+            { text: '予定、進捗、在庫、契約などを管理するのが得意', trait: 'structure' },
+            { text: '新しい企画や改善案を自分から出したい', trait: 'action' },
+            { text: '教育、福祉、人材育成など人の変化に関心がある', trait: 'support' },
+            { text: 'Photoshop、Figma、Canvaなどの制作ツールに興味がある', trait: 'creative' },
+            { text: 'Excel、SQL、アクセス解析などの道具に興味がある', trait: 'analytical' },
+            { text: '交渉、説明、ヒアリングを伴う仕事に抵抗が少ない', trait: 'people' },
+            { text: '総務、経理、人事、営業事務のような管理系に関心がある', trait: 'structure' },
+            { text: '事業やサービスを伸ばす役割に関心がある', trait: 'action' },
+            { text: '誰かのキャリアや生活の選択を支える仕事に関心がある', trait: 'support' }
+        ];
+
+        const roles = [
+            { title: 'インハウスWebデザイナー', weights: { creative: 5, analytical: 2, people: 2, structure: 3, action: 2, support: 1 }, firstStep: 'Figmaで既存サイトの改善案を3画面作る' },
+            { title: 'UIデザイナー SaaSプロダクト担当', weights: { creative: 5, analytical: 4, people: 2, structure: 3, action: 3, support: 2 }, firstStep: '画面遷移とコンポーネント設計を含むポートフォリオを作る' },
+            { title: '広告バナー・LP制作デザイナー', weights: { creative: 5, analytical: 3, people: 1, structure: 2, action: 4, support: 1 }, firstStep: '同じ商品のバナーを訴求違いで10案作る' },
+            { title: 'UXリサーチ補助・ユーザーインタビュー担当', weights: { creative: 3, analytical: 4, people: 4, structure: 3, action: 2, support: 4 }, firstStep: '5人分のインタビュー設計と分析サンプルを作る' },
+            { title: 'コンテンツマーケティング編集担当', weights: { creative: 4, analytical: 3, people: 2, structure: 3, action: 3, support: 2 }, firstStep: '検索意図を整理した記事構成案を5本作る' },
+            { title: 'SNS運用・キャンペーン企画担当', weights: { creative: 4, analytical: 3, people: 3, structure: 2, action: 5, support: 2 }, firstStep: '1か月分の投稿カレンダーと効果指標を作る' },
+            { title: 'Web広告運用アシスタント', weights: { creative: 2, analytical: 5, people: 2, structure: 4, action: 3, support: 1 }, firstStep: '広告指標の意味と改善パターンを表にまとめる' },
+            { title: 'データアナリスト入門職', weights: { creative: 2, analytical: 5, people: 2, structure: 4, action: 2, support: 1 }, firstStep: 'ExcelかSQLで売上データの分析レポートを作る' },
+            { title: '営業企画・営業推進アシスタント', weights: { creative: 2, analytical: 4, people: 3, structure: 4, action: 4, support: 2 }, firstStep: '営業KPIのダッシュボード案を作る' },
+            { title: '法人向けインサイドセールス', weights: { creative: 2, analytical: 3, people: 5, structure: 3, action: 5, support: 2 }, firstStep: '商談化までのトークスクリプトを作る' },
+            { title: 'カスタマーサクセス オンボーディング担当', weights: { creative: 2, analytical: 3, people: 5, structure: 4, action: 3, support: 5 }, firstStep: '導入初月の顧客支援フローを作る' },
+            { title: '採用人事アシスタント', weights: { creative: 2, analytical: 3, people: 5, structure: 4, action: 3, support: 4 }, firstStep: '求人票と面接評価シートを改善する' },
+            { title: '人事労務オペレーション担当', weights: { creative: 1, analytical: 3, people: 3, structure: 5, action: 2, support: 4 }, firstStep: '入退社手続きのチェックリストを作る' },
+            { title: '総務・ファシリティ管理担当', weights: { creative: 1, analytical: 2, people: 3, structure: 5, action: 3, support: 4 }, firstStep: '備品管理と社内問い合わせの運用案を作る' },
+            { title: '経理事務・請求管理担当', weights: { creative: 1, analytical: 4, people: 2, structure: 5, action: 2, support: 2 }, firstStep: '請求、入金、経費精算の流れを図にする' },
+            { title: '購買・調達アシスタント', weights: { creative: 1, analytical: 4, people: 3, structure: 5, action: 3, support: 2 }, firstStep: '見積比較表と発注フローを作る' },
+            { title: '事業企画アシスタント', weights: { creative: 3, analytical: 5, people: 3, structure: 3, action: 4, support: 1 }, firstStep: '市場、競合、顧客課題を1枚に整理する' },
+            { title: 'プロダクトマネージャー補佐', weights: { creative: 3, analytical: 4, people: 4, structure: 3, action: 5, support: 2 }, firstStep: 'ユーザー課題から機能要件を10個書き出す' },
+            { title: 'QAテスター・品質保証アシスタント', weights: { creative: 1, analytical: 4, people: 2, structure: 5, action: 2, support: 2 }, firstStep: 'Webアプリのテスト観点表を作る' },
+            { title: 'Webディレクターアシスタント', weights: { creative: 3, analytical: 3, people: 4, structure: 4, action: 4, support: 3 }, firstStep: 'サイト制作の進行表とワイヤーフレームを作る' },
+            { title: 'キャリアアドバイザー補助', weights: { creative: 1, analytical: 2, people: 5, structure: 3, action: 3, support: 5 }, firstStep: '面談ヒアリングシートを作る' },
+            { title: '研修運営・ラーニングサポート担当', weights: { creative: 2, analytical: 2, people: 4, structure: 4, action: 3, support: 5 }, firstStep: '研修前後アンケートと運営チェックリストを作る' },
+            { title: '医療・福祉系バックオフィス事務', weights: { creative: 1, analytical: 2, people: 3, structure: 5, action: 2, support: 5 }, firstStep: '受付、記録、請求の業務フローを調べる' },
+            { title: '店舗運営本部 スーパーバイザー候補', weights: { creative: 2, analytical: 3, people: 5, structure: 4, action: 5, support: 3 }, firstStep: '店舗KPIと改善施策の例を整理する' }
+        ];
+
+        const answers = new Array(questions.length).fill(0);
+        const storageKey = 'careerDiagnosisResults';
+        const questionnaire = document.getElementById('questionnaire');
+        const submitBtn = document.getElementById('submitBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        const pdfBtn = document.getElementById('pdfBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const progressText = document.getElementById('progressText');
+        const leadingTrait = document.getElementById('leadingTrait');
+        const progressBar = document.getElementById('progressBar');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        let currentReport = null;
+        let currentScores = null;
+        let currentProfile = null;
+
+        function renderQuestions() {
+            questionnaire.innerHTML = '';
+            questions.forEach((question, index) => {
+                const card = document.createElement('article');
+                card.className = 'question-card';
+
+                const head = document.createElement('div');
+                head.className = 'question-head';
+                head.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span><p>${question.text}</p>`;
+
+                const scale = document.createElement('div');
+                scale.className = 'scale';
+                [1, 2, 3, 4, 5].forEach((value) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.textContent = value;
+                    button.setAttribute('aria-label', `${value}点`);
+                    button.addEventListener('click', () => {
+                        answers[index] = value;
+                        updateState();
+                    });
+                    scale.appendChild(button);
+                });
+
+                const labels = document.createElement('div');
+                labels.className = 'scale-labels';
+                labels.innerHTML = '<span>低い</span><span>高い</span>';
+
+                card.appendChild(head);
+                card.appendChild(scale);
+                card.appendChild(labels);
+                questionnaire.appendChild(card);
+            });
+        }
+
+        function updateState() {
+            document.querySelectorAll('.question-card').forEach((card, index) => {
+                card.querySelectorAll('.scale button').forEach((button, buttonIndex) => {
+                    button.classList.toggle('selected', answers[index] === buttonIndex + 1);
+                });
+            });
+
+            const answered = answers.filter(Boolean).length;
+            progressText.textContent = `${answered} / ${questions.length}`;
+            progressBar.style.width = `${Math.round((answered / questions.length) * 100)}%`;
+            submitBtn.disabled = answered !== questions.length;
+
+            const scores = calculateTraitScores();
+            const topTrait = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+            leadingTrait.textContent = answered ? `${traits[topTrait[0]]}が強め` : '診断前';
+        }
+
+        function calculateTraitScores() {
+            const scores = Object.fromEntries(Object.keys(traits).map((key) => [key, 0]));
+            questions.forEach((question, index) => {
+                scores[question.trait] += answers[index] || 0;
+            });
+            return scores;
+        }
+
+        function rankRoles(scores) {
+            const maxTraitScore = 20;
+            return roles.map((role) => {
+                const raw = Object.entries(role.weights).reduce((sum, [trait, weight]) => {
+                    return sum + scores[trait] * weight;
+                }, 0);
+                const max = Object.values(role.weights).reduce((sum, weight) => sum + maxTraitScore * weight, 0);
+                return {
+                    ...role,
+                    match: Math.round((raw / max) * 100)
+                };
+            }).sort((a, b) => b.match - a.match);
+        }
+
+        function traitSummary(scores) {
+            return Object.entries(scores)
+                .map(([key, value]) => `${traits[key]}:${value}`)
+                .join(', ');
+        }
+
+        function topRolesSummary(rankedRoles) {
+            return rankedRoles.slice(0, 8)
+                .map((role) => `${role.title}(${role.match}%)`)
+                .join(', ');
+        }
+
+        function answerSummary() {
+            return questions.map((question, index) => `${index + 1}. ${question.text}=${answers[index]}`).join(' / ');
+        }
+
+        function getProfile() {
+            return {
+                userName: document.getElementById('userName').value.trim() || 'あなた',
+                workPreference: document.getElementById('workPreference').value,
+                interestAreas: document.getElementById('interestAreas').value,
+                workStyle: document.getElementById('workStyle').value,
+                workLocation: document.getElementById('workLocation').value,
+                employmentType: document.getElementById('employmentType').value,
+                avoidCondition: document.getElementById('avoidCondition').value
+            };
+        }
+
+        function conditionSummary(profile) {
+            return [
+                `働き方:${profile.workPreference}`,
+                `興味:${profile.interestAreas}`,
+                `勤務形態:${profile.workStyle}`,
+                `勤務地:${profile.workLocation}`,
+                `雇用形態:${profile.employmentType}`,
+                `避けたい条件:${profile.avoidCondition}`
+            ].join(' / ');
+        }
+
+        async function diagnose() {
+            const profile = getProfile();
+            const scores = calculateTraitScores();
+            const rankedRoles = rankRoles(scores);
+            const fallback = buildFallback(scores, rankedRoles, profile);
+            let finalReport = fallback;
+
+            renderResult(fallback, scores);
+            result.hidden = false;
+            loading.hidden = false;
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        app: 'career',
+                        title: '詳細適職診断',
+                        userName: profile.userName,
+                        workPreference: profile.workPreference,
+                        interestAreas: profile.interestAreas,
+                        workStyle: profile.workStyle,
+                        workLocation: profile.workLocation,
+                        employmentType: profile.employmentType,
+                        avoidCondition: profile.avoidCondition,
+                        conditionSummary: conditionSummary(profile),
+                        traitScores: traitSummary(scores),
+                        topRoles: topRolesSummary(rankedRoles),
+                        answerSummary: answerSummary()
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'API error');
+                }
+
+                const payload = await response.json();
+                finalReport = mergeReport(fallback, payload.data);
+                renderResult(finalReport, scores);
+            } catch (error) {
+                finalReport = {
+                    ...fallback,
+                    caveat: `${fallback.caveat} 詳細レポートの生成に失敗したため、ローカル診断結果を表示しています。`
+                };
+                renderResult(finalReport, scores);
+            } finally {
+                saveDiagnosis(finalReport, scores, profile);
+                renderHistory();
+                loading.hidden = true;
+                submitBtn.disabled = false;
+                result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function buildFallback(scores, rankedRoles, profile) {
+            const top = rankedRoles.slice(0, 3);
+            return {
+                headline: `${profile.userName}さんは ${top[0].title} が最有力`,
+                summary: `回答傾向では${traits[Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0]]}の強みが目立ちます。${profile.workStyle}や${profile.employmentType}の条件も踏まえて比較しましょう。`,
+                bestRoles: top.map((role) => ({
+                    title: role.title,
+                    match: role.match,
+                    why: matchingReason(role, scores),
+                    firstStep: role.firstStep
+                })),
+                nearRoles: rankedRoles.slice(3, 6).map((role) => role.title),
+                avoidEnvironments: [profile.avoidCondition, '役割が曖昧で評価基準が見えない環境', '学習や改善の時間がまったく取れない環境'],
+                skillPlan: top.map((role) => role.firstStep),
+                interviewKeywords: ['課題を整理して改善に変える', '相手に合わせて情報を届ける', '未経験領域も小さく試して学ぶ'],
+                caveat: 'この結果はキャリア選択の目安です。実際の応募では仕事内容、組織、育成体制も確認してください。'
+            };
+        }
+
+        function mergeReport(fallback, generated) {
+            const report = generated && generated.data ? generated.data : generated;
+            if (!report || typeof report !== 'object') {
+                return fallback;
+            }
+
+            return {
+                headline: report.headline || fallback.headline,
+                summary: report.summary || fallback.summary,
+                bestRoles: nonEmptyArray(report.bestRoles) ? mergeRoles(fallback.bestRoles, report.bestRoles) : fallback.bestRoles,
+                nearRoles: nonEmptyArray(report.nearRoles) ? report.nearRoles : fallback.nearRoles,
+                avoidEnvironments: nonEmptyArray(report.avoidEnvironments) ? report.avoidEnvironments : fallback.avoidEnvironments,
+                skillPlan: nonEmptyArray(report.skillPlan) ? report.skillPlan : fallback.skillPlan,
+                interviewKeywords: nonEmptyArray(report.interviewKeywords) ? report.interviewKeywords : fallback.interviewKeywords,
+                caveat: report.caveat || fallback.caveat
+            };
+        }
+
+        function mergeRoles(fallbackRoles, generatedRoles) {
+            return fallbackRoles.map((fallbackRole, index) => {
+                const generatedRole = generatedRoles[index] || {};
+                return {
+                    title: generatedRole.title || fallbackRole.title,
+                    match: Number.isFinite(Number(generatedRole.match)) ? Number(generatedRole.match) : fallbackRole.match,
+                    why: generatedRole.why || fallbackRole.why,
+                    firstStep: generatedRole.firstStep || fallbackRole.firstStep
+                };
+            });
+        }
+
+        function nonEmptyArray(value) {
+            return Array.isArray(value) && value.length > 0;
+        }
+
+        function matchingReason(role, scores) {
+            const strongTraits = Object.entries(role.weights)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 2)
+                .map(([key]) => traits[key])
+                .join('と');
+            return `${strongTraits}を使う場面が多く、回答傾向と重なります。`;
+        }
+
+        function renderResult(data, scores) {
+            if (!data || typeof data !== 'object') {
+                return;
+            }
+
+            currentReport = data;
+            currentScores = scores;
+            currentProfile = getProfile();
+            document.getElementById('shareStatus').textContent = '';
+            document.getElementById('headline').textContent = data.headline || '診断結果';
+            document.getElementById('summary').textContent = data.summary || '';
+            renderScores(scores);
+            renderBestRoles(data.bestRoles || []);
+            renderList('nearRoles', data.nearRoles);
+            renderList('avoidEnvironments', data.avoidEnvironments);
+            renderList('skillPlan', data.skillPlan);
+            renderList('interviewKeywords', data.interviewKeywords);
+            document.getElementById('caveat').textContent = data.caveat || 'この結果はキャリア選択の目安です。';
+        }
+
+        function getSavedDiagnoses() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                return Array.isArray(saved) ? saved : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function saveDiagnosis(report, scores, profile) {
+            try {
+                const saved = getSavedDiagnoses();
+                const record = {
+                    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                    createdAt: new Date().toISOString(),
+                    profile,
+                    answers: [...answers],
+                    scores,
+                    report
+                };
+                localStorage.setItem(storageKey, JSON.stringify([record, ...saved].slice(0, 12)));
+            } catch (error) {
+                document.getElementById('caveat').textContent = `${report.caveat || 'この結果はキャリア選択の目安です。'} ブラウザの保存領域に保存できませんでした。`;
+            }
+        }
+
+        function renderHistory() {
+            const historyPanel = document.getElementById('historyPanel');
+            const historyList = document.getElementById('historyList');
+            const saved = getSavedDiagnoses();
+
+            historyPanel.hidden = saved.length === 0;
+            historyList.innerHTML = '';
+
+            saved.forEach((record) => {
+                const item = document.createElement('article');
+                item.className = 'history-item';
+
+                const body = document.createElement('div');
+                const title = document.createElement('h3');
+                title.textContent = `${record.profile?.userName || 'あなた'}さんの結果`;
+
+                const meta = document.createElement('p');
+                const date = new Date(record.createdAt);
+                meta.textContent = `${Number.isNaN(date.getTime()) ? '' : date.toLocaleString('ja-JP')} / ${record.profile?.workStyle || '条件未設定'} / ${record.profile?.employmentType || '条件未設定'}`;
+
+                const headline = document.createElement('p');
+                headline.className = 'history-headline';
+                headline.textContent = record.report?.headline || '診断結果';
+
+                body.appendChild(title);
+                body.appendChild(meta);
+                body.appendChild(headline);
+
+                const actions = document.createElement('div');
+                actions.className = 'history-actions';
+
+                const viewButton = document.createElement('button');
+                viewButton.type = 'button';
+                viewButton.className = 'ghost-btn';
+                viewButton.textContent = '表示';
+                viewButton.addEventListener('click', () => loadDiagnosis(record));
+
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.className = 'ghost-btn';
+                deleteButton.textContent = '削除';
+                deleteButton.addEventListener('click', () => deleteDiagnosis(record.id));
+
+                actions.appendChild(viewButton);
+                actions.appendChild(deleteButton);
+                item.appendChild(body);
+                item.appendChild(actions);
+                historyList.appendChild(item);
+            });
+        }
+
+        function loadDiagnosis(record) {
+            if (record.profile) {
+                Object.entries(record.profile).forEach(([key, value]) => {
+                    const field = document.getElementById(key);
+                    if (field) {
+                        field.value = value;
+                    }
+                });
+            }
+
+            if (Array.isArray(record.answers) && record.answers.length === answers.length) {
+                record.answers.forEach((value, index) => {
+                    answers[index] = value;
+                });
+                updateState();
+            }
+
+            renderResult(record.report, record.scores || calculateTraitScores());
+            currentProfile = record.profile || getProfile();
+            result.hidden = false;
+            result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function deleteDiagnosis(id) {
+            const saved = getSavedDiagnoses().filter((record) => record.id !== id);
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(saved));
+            } catch (error) {
+                return;
+            }
+            renderHistory();
+        }
+
+        function clearHistory() {
+            try {
+                localStorage.removeItem(storageKey);
+            } catch (error) {
+                return;
+            }
+            renderHistory();
+        }
+
+        function downloadResultPdf() {
+            if (result.hidden || !currentReport) {
+                return;
+            }
+            const shareStatus = document.getElementById('shareStatus');
+            try {
+                shareStatus.textContent = 'PDFを作成しています...';
+                const pages = renderPdfPages();
+                const blob = createPdfBlob(pages);
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `career-result-${new Date().toISOString().slice(0, 10)}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                shareStatus.textContent = 'PDFを保存しました。';
+            } catch (error) {
+                shareStatus.textContent = 'PDFを作成できませんでした。';
+            }
+        }
+
+        function renderPdfPages() {
+            const pageWidth = 1240;
+            const pageHeight = 1754;
+            const margin = 88;
+            const bottom = pageHeight - 88;
+            const profile = currentProfile || getProfile();
+            const report = currentReport;
+            const scores = currentScores || calculateTraitScores();
+            const pages = [];
+            let canvas;
+            let context;
+            let y;
+
+            function startPage() {
+                canvas = document.createElement('canvas');
+                canvas.width = pageWidth;
+                canvas.height = pageHeight;
+                context = canvas.getContext('2d');
+                context.fillStyle = '#ffffff';
+                context.fillRect(0, 0, pageWidth, pageHeight);
+                context.fillStyle = '#197278';
+                context.fillRect(0, 0, pageWidth, 18);
+                context.fillStyle = '#20242a';
+                y = margin;
+                pages.push(canvas);
+            }
+
+            function setFont(size, weight = 600) {
+                context.font = `${weight} ${size}px "Segoe UI", "Yu Gothic", "Hiragino Sans", sans-serif`;
+            }
+
+            function wrapText(text, maxWidth, size, weight = 600) {
+                setFont(size, weight);
+                const source = String(text || '');
+                const lines = [];
+                let line = '';
+                Array.from(source).forEach((char) => {
+                    const nextLine = line + char;
+                    if (context.measureText(nextLine).width > maxWidth && line) {
+                        lines.push(line);
+                        line = char;
+                    } else {
+                        line = nextLine;
+                    }
+                });
+                if (line) {
+                    lines.push(line);
+                }
+                return lines.length ? lines : [''];
+            }
+
+            function ensureSpace(height) {
+                if (y + height <= bottom) {
+                    return;
+                }
+                startPage();
+            }
+
+            function drawText(text, options = {}) {
+                const size = options.size || 34;
+                const lineHeight = options.lineHeight || Math.round(size * 1.45);
+                const weight = options.weight || 600;
+                const color = options.color || '#20242a';
+                const indent = options.indent || 0;
+                const before = options.before || 0;
+                const after = options.after || 0;
+                const maxWidth = pageWidth - margin * 2 - indent;
+                const lines = wrapText(text, maxWidth, size, weight);
+                ensureSpace(before + lines.length * lineHeight + after);
+                y += before;
+                setFont(size, weight);
+                context.fillStyle = color;
+                lines.forEach((line) => {
+                    context.fillText(line, margin + indent, y);
+                    y += lineHeight;
+                });
+                y += after;
+            }
+
+            function drawRule() {
+                ensureSpace(26);
+                context.strokeStyle = '#d9e1e6';
+                context.lineWidth = 2;
+                context.beginPath();
+                context.moveTo(margin, y);
+                context.lineTo(pageWidth - margin, y);
+                context.stroke();
+                y += 26;
+            }
+
+            function drawList(title, items = []) {
+                drawText(title, { size: 34, weight: 800, color: '#197278', before: 20, after: 8 });
+                items.slice(0, 3).forEach((item) => {
+                    drawText(`- ${item}`, { size: 28, weight: 500, indent: 18 });
+                });
+            }
+
+            startPage();
+            drawText('詳細適職診断 結果レポート', { size: 48, weight: 900, color: '#197278', after: 12 });
+            drawText(`${profile.userName || 'あなた'}さん`, { size: 32, weight: 800, color: '#64717d', after: 18 });
+            drawText(report.headline || '診断結果', { size: 42, weight: 900, after: 10 });
+            drawText(report.summary || '', { size: 30, weight: 500, color: '#35404a', after: 18 });
+            drawRule();
+            drawText(`条件: ${conditionSummary(profile)}`, { size: 26, weight: 500, color: '#35404a', after: 14 });
+            drawText(`強みスコア: ${Object.entries(scores).map(([key, value]) => `${traits[key]}:${value}`).join(' / ')}`, { size: 26, weight: 500, color: '#35404a', after: 16 });
+
+            drawText('上位候補', { size: 36, weight: 900, color: '#197278', before: 8, after: 10 });
+            (report.bestRoles || []).slice(0, 3).forEach((role, index) => {
+                ensureSpace(210);
+                drawText(`${index + 1}. ${role.title || '候補職種'} (${role.match || 0}% match)`, { size: 32, weight: 900, after: 4 });
+                drawText(role.why || '', { size: 26, weight: 500, color: '#35404a' });
+                drawText(`最初の一歩: ${role.firstStep || ''}`, { size: 26, weight: 700, color: '#35404a', after: 12 });
+            });
+
+            drawList('近い職種', report.nearRoles);
+            drawList('避けたい環境', report.avoidEnvironments);
+            drawList('最初に磨くスキル', report.skillPlan);
+            drawList('面接で使える言葉', report.interviewKeywords);
+            drawText(report.caveat || 'この結果はキャリア選択の目安です。', { size: 24, weight: 500, color: '#64717d', before: 20 });
+
+            return pages.map((page) => ({
+                width: page.width,
+                height: page.height,
+                jpeg: dataUrlToBinary(page.toDataURL('image/jpeg', 0.92))
+            }));
+        }
+
+        function dataUrlToBinary(dataUrl) {
+            return atob(dataUrl.split(',')[1]);
+        }
+
+        function createPdfBlob(images) {
+            const pageWidth = 595.28;
+            const pageHeight = 841.89;
+            const objects = [];
+            const pageRefs = [];
+
+            function addObject(content) {
+                objects.push(content);
+                return objects.length;
+            }
+
+            const catalogRef = addObject('<< /Type /Catalog /Pages 2 0 R >>');
+            const pagesRef = addObject('');
+
+            images.forEach((image, index) => {
+                const imageRef = addObject(`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${image.jpeg.length} >>\nstream\n${image.jpeg}\nendstream`);
+                const content = `q\n${pageWidth} 0 0 ${pageHeight} 0 0 cm\n/Im${index} Do\nQ`;
+                const contentRef = addObject(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+                const pageRef = addObject(`<< /Type /Page /Parent ${pagesRef} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /XObject << /Im${index} ${imageRef} 0 R >> >> /Contents ${contentRef} 0 R >>`);
+                pageRefs.push(pageRef);
+            });
+
+            objects[pagesRef - 1] = `<< /Type /Pages /Kids [${pageRefs.map((ref) => `${ref} 0 R`).join(' ')}] /Count ${pageRefs.length} >>`;
+
+            let pdf = '%PDF-1.4\n';
+            const offsets = [0];
+            objects.forEach((object, index) => {
+                offsets.push(pdf.length);
+                pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+            });
+            const xrefOffset = pdf.length;
+            pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+            offsets.slice(1).forEach((offset) => {
+                pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;
+            });
+            pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogRef} 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+            const bytes = new Uint8Array(pdf.length);
+            for (let index = 0; index < pdf.length; index += 1) {
+                bytes[index] = pdf.charCodeAt(index) & 0xff;
+            }
+            return new Blob([bytes], { type: 'application/pdf' });
+        }
+
+        function buildShareText() {
+            const profile = currentProfile || getProfile();
+            const report = currentReport;
+            if (!report) {
+                return '';
+            }
+
+            const rolesText = (report.bestRoles || [])
+                .slice(0, 3)
+                .map((role, index) => `${index + 1}. ${role.title || '候補職種'} ${role.match || 0}%`)
+                .join('\n');
+
+            const scoresText = currentScores
+                ? Object.entries(currentScores).map(([key, value]) => `${traits[key]}:${value}`).join(' / ')
+                : '';
+
+            return [
+                '詳細適職診断の結果',
+                `${profile.userName || 'あなた'}さん`,
+                report.headline || '診断結果',
+                report.summary || '',
+                '',
+                '上位候補',
+                rolesText,
+                '',
+                `条件: ${conditionSummary(profile)}`,
+                scoresText ? `強みスコア: ${scoresText}` : '',
+                report.caveat || ''
+            ].filter(Boolean).join('\n');
+        }
+
+        async function shareResult() {
+            const text = buildShareText();
+            const shareStatus = document.getElementById('shareStatus');
+            if (!text) {
+                return;
+            }
+
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: '詳細適職診断の結果',
+                        text
+                    });
+                    shareStatus.textContent = '共有を開きました。';
+                    return;
+                }
+
+                if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    copyTextFallback(text);
+                }
+                shareStatus.textContent = '結果テキストをコピーしました。';
+            } catch (error) {
+                shareStatus.textContent = '共有できませんでした。ブラウザの設定を確認してください。';
+            }
+        }
+
+        function copyTextFallback(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
+        function renderScores(scores) {
+            const scoreGrid = document.getElementById('scoreGrid');
+            scoreGrid.innerHTML = '';
+            Object.entries(scores).forEach(([key, value]) => {
+                const card = document.createElement('div');
+                card.className = 'score-card';
+                card.innerHTML = `
+                    <div class="score-label">${traits[key]}</div>
+                    <div class="score-value">${value}</div>
+                    <div class="score-track"><div style="width: ${Math.round((value / 20) * 100)}%"></div></div>
+                `;
+                scoreGrid.appendChild(card);
+            });
+        }
+
+        function renderBestRoles(items) {
+            const list = document.getElementById('bestRoles');
+            list.innerHTML = '';
+            items.slice(0, 3).forEach((role, index) => {
+                const article = document.createElement('article');
+                article.className = 'role-card';
+
+                const rank = document.createElement('div');
+                rank.className = 'role-rank';
+                rank.textContent = index + 1;
+
+                const body = document.createElement('div');
+                const title = document.createElement('h3');
+                title.textContent = role.title || '候補職種';
+
+                const match = document.createElement('p');
+                match.className = 'match';
+                match.textContent = `${role.match || 0}% match`;
+
+                const why = document.createElement('p');
+                why.textContent = role.why || '';
+
+                const firstStep = document.createElement('p');
+                firstStep.className = 'first-step';
+                firstStep.textContent = role.firstStep || '';
+
+                body.appendChild(title);
+                body.appendChild(match);
+                body.appendChild(why);
+                body.appendChild(firstStep);
+                article.appendChild(rank);
+                article.appendChild(body);
+                list.appendChild(article);
+            });
+        }
+
+        function renderList(id, items = []) {
+            const list = document.getElementById(id);
+            list.innerHTML = '';
+            items.slice(0, 3).forEach((item) => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                list.appendChild(li);
+            });
+        }
+
+        function resetApp() {
+            answers.fill(0);
+            result.hidden = true;
+            loading.hidden = true;
+            updateState();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        submitBtn.addEventListener('click', diagnose);
+        resetBtn.addEventListener('click', resetApp);
+        retryBtn.addEventListener('click', resetApp);
+        pdfBtn.addEventListener('click', downloadResultPdf);
+        shareBtn.addEventListener('click', shareResult);
+        clearHistoryBtn.addEventListener('click', clearHistory);
+
+        renderQuestions();
+        updateState();
+        renderHistory();
+    </script>
+</body>
+</html>

@@ -20,12 +20,16 @@ const MODELS = {
 };
 const MODEL = MODELS[PROVIDER];
 
-let promptTemplate;
-try {
-    promptTemplate = fs.readFileSync('prompt.md', 'utf8');
-} catch (error) {
-    console.error('Error reading prompt.md:', error);
-    process.exit(1);
+const PROMPT_FILES = {
+    default: 'prompt.md',
+    career: 'prompts/career.md',
+};
+
+for (const promptPath of Object.values(PROMPT_FILES)) {
+    if (!fs.existsSync(promptPath)) {
+        console.error(`Prompt file not found: ${promptPath}`);
+        process.exit(1);
+    }
 }
 
 const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
@@ -44,8 +48,13 @@ const MAX_COUNT = 20;
 app.post('/api/', async (req, res) => {
     try {
         // title と、変数置換に使うその他のキーを受け取る
-        // （prompt.md がプロンプトを定義するので、リクエストでの上書きは許可しない）
-        const { title = 'Generated Content', ...variables } = req.body;
+        // （登録済みプロンプトだけを使い、リクエストでの任意プロンプト指定は許可しない）
+        const { title = 'Generated Content', app: appName = 'default', ...variables } = req.body;
+
+        const promptTemplate = loadPromptTemplate(appName);
+        if (!promptTemplate) {
+            return res.status(400).json({ error: 'Invalid app configuration' });
+        }
 
         // count が指定されている場合は 1〜MAX_COUNT の範囲に収める
         if (variables.count !== undefined) {
@@ -119,7 +128,7 @@ async function callOpenAI(prompt) {
 
     const data = await response.json();
     const responseText = data.choices[0].message.content;
-    return extractArray(responseText);
+    return extractData(responseText);
 }
 
 async function callGemini(prompt) {
@@ -151,11 +160,19 @@ async function callGemini(prompt) {
 
     const data = await response.json();
     const responseText = data.candidates[0].content.parts[0].text;
-    return extractArray(responseText);
+    return extractData(responseText);
 }
 
-// LLM が返した JSON 文字列をパースし、最初に見つかった配列を取り出す
-function extractArray(responseText) {
+function loadPromptTemplate(appName) {
+    const promptPath = PROMPT_FILES[appName];
+    if (!promptPath) {
+        return null;
+    }
+    return fs.readFileSync(promptPath, 'utf8');
+}
+
+// LLM が返した JSON 文字列をパースし、data があれば優先して返す
+function extractData(responseText) {
     let parsedData;
     try {
         parsedData = JSON.parse(responseText);
@@ -163,11 +180,16 @@ function extractArray(responseText) {
         throw new Error('Failed to parse LLM response: ' + parseError.message);
     }
 
-    const arrayData = Object.values(parsedData).find(Array.isArray);
-    if (!arrayData) {
-        throw new Error('No array found in the LLM response object.');
+    if (Object.prototype.hasOwnProperty.call(parsedData, 'data')) {
+        return parsedData.data;
     }
-    return arrayData;
+
+    const arrayData = Object.values(parsedData).find(Array.isArray);
+    if (arrayData) {
+        return arrayData;
+    }
+
+    return parsedData;
 }
 
 app.listen(PORT, () => {

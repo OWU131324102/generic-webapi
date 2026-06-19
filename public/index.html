@@ -17,6 +17,11 @@
     <ul id="appList"></ul>
 
     <script>
+        const pageLabels = {
+            'career.html': '詳細適職診断',
+            'quiz.html': 'ITパスポート対策クイズ'
+        };
+
         // サーバーから .html ファイルの一覧を取得してリンクを表示する
         async function loadPages() {
             const response = await fetch('/api/pages');
@@ -32,7 +37,7 @@
                 const li = document.createElement('li');
                 const a = document.createElement('a');
                 a.href = name;
-                a.textContent = name;
+                a.textContent = pageLabels[name] || name;
                 li.appendChild(a);
                 list.appendChild(li);
             });
